@@ -11,20 +11,23 @@ function CustomCursor() {
   const dot = useRef({ x: 0, y: 0 })
   const ring = useRef({ x: 0, y: 0 })
   const frame = useRef(null)
-  const [enabled, setEnabled] = useState(false)
+  const [enabled] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    return (
+      window.matchMedia('(pointer: fine)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    )
+  })
   const [active, setActive] = useState(false)
   const [label, setLabel] = useState('')
 
   useEffect(() => {
-    const canUseCursor =
-      window.matchMedia('(pointer: fine)').matches &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    if (!canUseCursor) {
+    if (!enabled) {
       return undefined
     }
-
-    setEnabled(true)
 
     const moveCursor = () => {
       dot.current.x += (mouse.current.x - dot.current.x) * 0.65
@@ -75,7 +78,7 @@ function CustomCursor() {
       document.removeEventListener('pointerout', handlePointerOut)
       window.cancelAnimationFrame(frame.current)
     }
-  }, [])
+  }, [enabled])
 
   if (!enabled) {
     return null
